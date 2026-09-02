@@ -131,7 +131,6 @@ async def handle_test_contact(update: Update, context: ContextTypes.DEFAULT_TYPE
     context.user_data["test_result_summary"] = tier
     from_user = update.message.from_user
     asyncio.create_task(log_to_sheet("contact", name=f"{from_user.first_name or ''} {from_user.last_name or ''}".strip(), username=f"@{from_user.username}" if from_user.username else "", phone=phone, result=tier))
-    await notify_admin(context, user=update.message.from_user, contact_str=contact_str, test_result=tier)
     await update.message.reply_text("Спасибо! ✅", reply_markup=ReplyKeyboardRemove())
     await update.message.reply_text("✅ *Правильные ответы:*\n\nВопрос 1 – радость переживала А, девушка слева\nВопрос 2 – один из участников встречи действительно испытывает давление со стороны других участников\nВопрос 3 – животное было на карточке В — слон 🐘\nВопрос 4 – за дверью солнечное лето ☀️\nВопрос 5 – умение управлять своим вниманием вне зависимости от внешней ситуации позволяет более точно считывать информацию с помощью интуиции", parse_mode="Markdown")
     with open(IMG["otvet_1"], "rb") as f1, open(IMG["otvet_3"], "rb") as f3, open(IMG["otvet_4"], "rb") as f4:
@@ -143,6 +142,10 @@ async def handle_test_contact(update: Update, context: ContextTypes.DEFAULT_TYPE
     chat_id = update.message.chat_id
     asyncio.create_task(delayed_pdf(context.bot, chat_id))
     asyncio.create_task(delayed_video_note(context.bot, chat_id))
+    try:
+        await notify_admin(context, user=update.message.from_user, contact_str=contact_str, test_result=tier)
+    except Exception as exc:
+        logger.warning("Admin notify failed: %s", exc)
     logger.info("User %s finished test. Score: %d, phone: %s", update.message.from_user.id, total, phone)
     return MENU
 
