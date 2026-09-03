@@ -30,7 +30,7 @@ TOKEN         = os.getenv("BOT_TOKEN", "8895251334:AAGggr3X-6g5ZmNuFCAb6WhkOjCfQ
 ADMIN_CHAT_ID = os.getenv("ADMIN_CHAT_ID", "")
 SHEET_URL     = os.getenv("SHEET_URL", "")
 
-TECHNIQUE_URL = "https://youtu.be/tT9jt072jQw?si=RIIoirofvHC53WzY"
+TECHNIQUE_URL = "https://youtu.be/iDxW8sOII98?si=jBROUhrJdAUriJMK"
 BASE = os.path.join(os.path.dirname(__file__), "images")
 IMG = {"q1": f"{BASE}/vopros_1.jpg","q2": f"{BASE}/vopros_2.jpg","q3": f"{BASE}/vopros_3.jpg","q4": f"{BASE}/vopros_4.jpg","q5": f"{BASE}/vopros_5.jpg","otvet_1": f"{BASE}/otvet_1.jpg","otvet_3": f"{BASE}/otvet_3.jpg","otvet_4": f"{BASE}/otvet_4.jpg"}
 PDF_PATH        = os.path.join(os.path.dirname(__file__), "Эмоции и потребности.pdf")
@@ -69,15 +69,21 @@ async def delayed_pdf(bot, chat_id):
 
 async def delayed_video_note(bot, chat_id):
     await asyncio.sleep(10 * 60)
-    with open(VIDEO_NOTE_PATH, "rb") as f:
-        await bot.send_video_note(chat_id=chat_id, video_note=f)
-    await bot.send_message(chat_id=chat_id, text='Онлайн-курс "Основы управления интуицией"\nв записи с моей обратной связью\n\nСтарт 10 сентября', reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("📚 Узнать программу курса", callback_data="program_info")]]))
+    try:
+        with open(VIDEO_NOTE_PATH, "rb") as f:
+            await bot.send_video_note(chat_id=chat_id, video_note=f)
+    except Exception as exc:
+        logger.warning("Video note failed: %s", exc)
+    try:
+        await bot.send_message(chat_id=chat_id, text='Онлайн-курс "Основы управления интуицией"\nв записи с моей обратной связью\n\nСтарт 10 сентября', reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("📚 Узнать программу курса", url="https://maria-alpidovskaya.ru/online_kurs/")]]))
+    except Exception as exc:
+        logger.warning("Course link message failed: %s", exc)
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     context.user_data.clear()
     user = update.message.from_user
     asyncio.create_task(log_to_sheet("start", name=f"{user.first_name or ''} {user.last_name or ''}".strip(), username=f"@{user.username}" if user.username else "", user_id=user.id))
-    await update.message.reply_text("Привет! 👋\n\nЯ бот Марии Альпидовской, эксперта по развитию сознания и интуиции для принятия точных решений в деловых и личных вопросах.\n\nНиже тест из 5 вопросов 👇\nОн поможет определить уровень развития твоей интуиции прямо сейчас.", reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("🔮  Пройти тест на интуицию", callback_data="m_test")]]))
+    await update.message.reply_text("Привет! 👋\n\nЯ бот Марии Альпидовской, эксперта по развитию сознания и интуиции для принятия точных решений в деловых и личных вопросах.\n\nНиже тест из 5 вопросов 👇\nОн поможет определить уровень развития твоей интуиции прямо сейчас.", reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("✅  Пройти тест на интуицию", callback_data="m_test")]]))
     return MENU
 
 async def ask_q1(update, context):
@@ -107,7 +113,7 @@ async def answer_q4(update, context):
 
 async def ask_contact_after_test(update, context):
     q = update.callback_query; await q.answer(); add_score(context, "q5", q.data.split("_")[1])
-    await q.message.reply_text("✅ Отлично, тест пройден!\n\nЧтобы я смог отправить тебе результаты, поделись, пожалуйста, контактом 👇", reply_markup=ReplyKeyboardMarkup([[KeyboardButton("📱 Поделиться контактом", request_contact=True)]], one_time_keyboard=True, resize_keyboard=True))
+    await q.message.reply_text("✅ Отлично, тест пройден!\n\nЧтобы я смог отправить тебе результаты — нажми кнопку 📱 и поделись контактом.\n\nЕсли кнопка не видна — нажми на иконку 🎹 рядом с полем ввода.", reply_markup=ReplyKeyboardMarkup([[KeyboardButton("📱 Поделиться контактом", request_contact=True)]], one_time_keyboard=True, resize_keyboard=True, input_field_placeholder="👆 Нажми кнопку выше"))
     return WAIT_TEST_CONTACT
 
 async def handle_test_contact(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
@@ -138,7 +144,7 @@ async def handle_test_contact(update: Update, context: ContextTypes.DEFAULT_TYPE
     await asyncio.sleep(5)
     await update.message.reply_text(f"*Твой результат: {total} из 10 баллов*\n\n*{title}*\n\n{body}", parse_mode="Markdown")
     await asyncio.sleep(10)
-    await update.message.reply_text(f"🎥 *Как считывать намерение человека*\n\nМария подготовила бесплатный урок.\n\nУрок по ссылке👇\n{TECHNIQUE_URL}", parse_mode="Markdown")
+    await update.message.reply_text("🎥 *Как считывать намерение человека*\n\nСмотрите в бесплатном уроке:\n\n0:00 Почему мы ошибаемся в людях\n0:35 Слова и намерение — в чём разница\n1:30 3 уровня считывания человека\n3:10 Шаг 1: выйти в позицию наблюдателя\n4:20 Шаг 2: правильные внутренние вопросы\n5:30 Шаг 3: перестать читать буквально\n7:00 Что делать с полученной информацией\n8:30 Почему это не работает в стрессе\n9:15 Как развить этот навык системно\n\nУрок по ссылке👇\nhttps://youtu.be/iDxW8sOII98?si=jBROUhrJdAUriJMK", parse_mode="Markdown")
     chat_id = update.message.chat_id
     asyncio.create_task(delayed_pdf(context.bot, chat_id))
     asyncio.create_task(delayed_video_note(context.bot, chat_id))
