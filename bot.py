@@ -132,16 +132,19 @@ async def delayed_pdf(bot, chat_id: int):
 
 
 async def delayed_video_note(bot, chat_id: int):
-    await asyncio.sleep(10 * 60)   # 10 мин после видео (= 7 мин после PDF)
+    await asyncio.sleep(10 * 60)   # 10 мин после PDF
+    # 1 — сначала кружок
     try:
         with open(VIDEO_NOTE_PATH, "rb") as f:
             await bot.send_video_note(chat_id=chat_id, video_note=f)
     except Exception as exc:
         logger.warning("Video note failed: %s", exc)
+    await asyncio.sleep(2)   # небольшая пауза, чтобы кружок дошёл раньше текста
+    # 2 — потом сообщение с кнопкой
     try:
         await bot.send_message(
             chat_id=chat_id,
-            text='Онлайн-курс "Основы управления интуицией"\nв записи с моей обратной связью\n\nСтарт 10 сентября',
+            text='Онлайн-курс «Основы управления интуицией»\nв записи с моей обратной связью',
             reply_markup=InlineKeyboardMarkup([[
                 InlineKeyboardButton("📚 Узнать программу курса", url="https://maria-alpidovskaya.ru/online_kurs/"),
             ]]),
