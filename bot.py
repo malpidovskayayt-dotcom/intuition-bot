@@ -44,6 +44,19 @@ IMG = {
 PDF_PATH        = os.path.join(os.path.dirname(__file__), "Эмоции и потребности.pdf")
 VIDEO_NOTE_PATH = os.path.join(os.path.dirname(__file__), "kruzhok.mp4")
 
+(
+    MENU,
+    WAIT_Q1, WAIT_Q2, WAIT_Q3, WAIT_Q4, WAIT_Q5,
+) = range(6)
+
+SCORES = {
+    "q1": {"a": 2, "b": 0, "c": 0},
+    "q2": {"a": 2, "b": 1, "c": 0},
+    "q3": {"a": 0, "b": 0, "c": 2},
+    "q4": {"a": 2, "b": 0, "c": 0},
+    "q5": {"a": 2, "b": 1, "c": 0},
+}
+
 logging.basicConfig(
     format="%(asctime)s · %(name)s · %(levelname)s · %(message)s",
     level=logging.INFO,
